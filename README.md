@@ -53,6 +53,7 @@ This script installs a standard set of programs for a typical Windows user.
 - GPU-Z
 - WhatsApp
 - Microsoft Visual C++
+- Vortex Mod Manager
 
 #### Usage
 
