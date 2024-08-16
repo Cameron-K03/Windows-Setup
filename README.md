@@ -13,47 +13,56 @@ This repository contains PowerShell scripts to help set up a Windows machine wit
 This script installs a standard set of programs for a typical Windows user.
 
 #### Software List
-- gparted
-- Windows Media Creation Tool
+
 - Rufus
 - Etcher
 - Ventoy
 - TreeSize Free
 - SpaceSniffer
-- Display Driver Uninstaller (DDU)
-- CpuZ
-- Stress Test
-- Memtest86+
-- WinDBG Preview
 - Revo Uninstaller
 - 7-zip
 - ImageGlass
 - GlassWire
-- FurMark
+- MSI Kombustor
 - VLC Media Player
 - Paint.net
 - Microsoft 365 Apps
 - Firefox
 - Git
-- AMD Software
-- 7-Zip
-- Steam
-- Epic Games Launcher
-- Discord
-- OBS Studio
-- MSI Afterburner
 - NordVPN
-- HWMonitorPro
-- eXtreme Tuning Utility
-- AMD Software: Adrenalin Edition (or GeForce Experience)
-- iCUE (or Razer Synapse)
-- Game Bar
-- Frapps
+- HWMonitor
 - CPU-Z
 - GPU-Z
 - WhatsApp
-- Microsoft Visual C++
-- Vortex Mod Manager
+- Discord
+- Microsoft Visual C++ 2015-2022 Redistributable (x86)
+- Microsoft Visual C++ 2015-2022 Redistributable (x64)
+
+### 2. Gamer Programs Installation
+
+This script installs software specifically geared towards gamers.
+
+#### Software List
+
+- Steam
+- Epic Games Launcher
+- Origin
+- Battle.net
+- GOG Galaxy
+- Razer Synapse
+- GeForce Experience
+- AMD Radeon Software
+- MSI Afterburner
+- OBS Studio
+- Discord
+- TeamSpeak
+- Vortex
+- Twitch
+- Fraps
+- Rivatuner Statistics Server
+- Game Bar
+- JoyToKey
+- DS4Windows
 
 #### Usage
 
