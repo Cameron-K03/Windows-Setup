@@ -1,118 +1,71 @@
-# Function to retrieve installed programs from the registry
-function Get-InstalledPrograms {
-    param (
-        [string]${registryKey}
-    )
-
+function Get-InstalledAppsWin32 {
     try {
-        $programs = Get-ItemProperty ${registryKey} |
-                    Select-Object DisplayName, DisplayVersion, Publisher, InstallDate, UninstallString |
-                    Where-Object { $_.DisplayName -ne $null }
-        return $programs
+        # Check if the Win32_Product class is valid
+        $classCheck = Get-WmiObject -List | Where-Object { $_.Name -eq 'Win32_Product' }
+        if ($classCheck) {
+            $apps = Get-WmiObject -Query "SELECT * FROM Win32_Product"
+            return $apps
+        } else {
+            Write-Output "Win32_Product class is invalid or not available."
+            return $null
+        }
     } catch {
-        Write-Output "Failed to retrieve programs from ${registryKey}: $($_.Exception.Message)"
+        Write-Output "Failed to retrieve apps using Win32_Product."
         return $null
     }
 }
 
-# Retrieve programs from Local Machine and Current User registry keys
-$programsHKLM = Get-InstalledPrograms -registryKey "HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\*"
-$programsHKLM += Get-InstalledPrograms -registryKey "HKLM:\Software\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*"
-$programsHKCU = Get-InstalledPrograms -registryKey "HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\*"
-
-# Combine all found programs into one list
-$allPrograms = $programsHKLM + $programsHKCU | Where-Object { $_.DisplayName }
-
-# Function to execute a command and handle errors gracefully
-function Execute-Command {
-    param (
-        [string]$command,
-        [string]$programName
-    )
-    
+function Get-InstalledAppsPackage {
     try {
-        $process = Start-Process "cmd.exe" -ArgumentList "/c $command" -Wait -NoNewWindow -PassThru
-        $process.WaitForExit()
-        return $process.ExitCode
+        $apps = Get-Package
+        return $apps
     } catch {
-        Write-Output "Error executing the command for {$programName}: $($_.Exception.Message)"
-        return 1
+        Write-Output "Failed to retrieve apps using Get-Package."
+        return $null
     }
 }
 
-# Function to open the Control Panel's Add/Remove Programs interface for a specific program
-function Fallback-ControlPanelUninstall {
-    param (
-        [string]$programName
-    )
+# Retrieve installed applications using Win32_Product and Get-Package
+$win32Apps = Get-InstalledAppsWin32
+$packageApps = Get-InstalledAppsPackage
 
-    Write-Output "Attempting to uninstall $programName using the Control Panel..."
+# If both methods succeeded, cross-reference and merge the lists
+if ($win32Apps -and $packageApps) {
+    $win32AppNames = $win32Apps.Name
+    $packageAppNames = $packageApps.Name
 
-    # Open Control Panel to the specific program's uninstall page
-    Start-Process "control.exe" -ArgumentList "appwiz.cpl,,2" -Wait
-
-    Write-Output "Please manually uninstall $programName via the Control Panel."
+    # Merge lists and remove duplicates
+    $combinedAppNames = $win32AppNames + $packageAppNames | Sort-Object -Unique
+} elseif ($win32Apps) {
+    $combinedAppNames = $win32Apps.Name
+} elseif ($packageApps) {
+    $combinedAppNames = $packageApps.Name
+} else {
+    Write-Output "No applications found using either method."
+    exit
 }
 
-# Uninstall each program using the UninstallString with enhanced error handling
-foreach ($program in $allPrograms) {
-    $programName = $program.DisplayName
-    $uninstallCommand = $program.UninstallString
-
-    if ($uninstallCommand) {
-        Write-Output "Attempting to silently uninstall $programName..."
-
-        # Handle MSI-based uninstall commands
-        if ($uninstallCommand -match "MsiExec.exe") {
-            if ($uninstallCommand -notmatch "/X" -and $uninstallCommand -match "\{.*\}") {
-                # If /X is missing but a product code is present, add /X and quiet options
-                $uninstallCommand = "MsiExec.exe /X" + $uninstallCommand.Trim("MsiExec.exe") + " /quiet /norestart"
-            } elseif ($uninstallCommand -match "/X") {
-                $uninstallCommand += " /quiet /norestart"
-            } else {
-                Write-Output "Uninstall command for $programName does not include /X or a product code. Skipping..."
-                continue
-            }
-
-            # Attempt silent uninstallation
-            $silentExitCode = Execute-Command -command $uninstallCommand -programName $programName
-
-            # If silent uninstall fails, retry without silent flags
-            if ($silentExitCode -ne 0) {
-                Write-Output "Silent uninstall failed for $programName. Retrying interactively..."
-                $uninstallCommand = $uninstallCommand.Replace(" /quiet /norestart", "")
-                $interactiveExitCode = Execute-Command -command $uninstallCommand -programName $programName
-
-                if ($interactiveExitCode -ne 0) {
-                    Write-Output "Interactive uninstall also failed. Falling back to Control Panel for $programName."
-                    Fallback-ControlPanelUninstall -programName $programName
-                }
-            }
+foreach ($appName in $combinedAppNames) {
+    try {
+        # Attempt to uninstall using Win32_Product
+        $app = $win32Apps | Where-Object { $_.Name -eq $appName }
+        if ($app) {
+            Write-Output "Detected $($app.Name) using Win32_Product..."
+            $app.Uninstall() | Out-Null
+            Write-Output "An attempt to uninstall $($app.Name) was made using Win32_Product."
         } else {
-            # For other types of uninstallers, try adding common silent flags
-            if ($uninstallCommand -match ".exe") {
-                $silentCommand = $uninstallCommand + " /S /quiet /norestart"
-                $silentExitCode = Execute-Command -command $silentCommand -programName $programName
-
-                # If silent uninstall fails, retry without silent flags
-                if ($silentExitCode -ne 0) {
-                    Write-Output "Silent uninstall failed for $programName. Retrying interactively..."
-                    $interactiveExitCode = Execute-Command -command $uninstallCommand -programName $programName
-
-                    if ($interactiveExitCode -ne 0) {
-                        Write-Output "Interactive uninstall also failed. Falling back to Control Panel for $programName."
-                        Fallback-ControlPanelUninstall -programName $programName
-                    }
-                }
+            # Attempt to uninstall using Get-Package if not found in Win32_Product
+            $appPackage = $packageApps | Where-Object { $_.Name -eq $appName }
+            if ($appPackage) {
+                Write-Output "Detected $($appPackage.Name) using Get-Package..."
+                Uninstall-Package -Name $appPackage.Name -Force -ErrorAction Stop | Out-Null
+                Write-Output "An attempt to uninstall $($appPackage.Name) was made using Get-Package."
             }
         }
-
-        Write-Output "$programName has been uninstalled."
-    } else {
-        Write-Output "No uninstall command found for $programName. Skipping..."
+    } catch {
+        # Handle access denied errors or other issues
+        Write-Output "Failed to uninstall $appName. Access denied or other issue."
     }
-
-    Write-Output "-------------------------------------------"
 }
 
-Write-Output "Uninstallation process completed."
+Write-Output "Uninstallation process completed for some things. Maybe try Revo Uninstaller to get the rest..."
