@@ -14,15 +14,11 @@ $softwareList = @(
     @{ Name = "GlassWire Lite"; WingetID = "GlassWire.GlassWire.Lite" },      # GlassWire - Network security monitoring
     @{ Name = "MSI Kombustor"; WingetID = "MSI.Kombustor.4" },                # MSI Kombustor - GPU stress test tool
     @{ Name = "VLC Media Player"; WingetID = "VideoLAN.VLC" },                # VLC Media Player - open-source multimedia player
-    @{ Name = "Paint.net"; WingetID = "dotPDNLLC.paintdotnet" },              # Paint.net - image editor
-    @{ Name = "Microsoft 365 Apps"; WingetID = "Microsoft.Office" },          # Microsoft 365 Apps - All the Microsoft office apps
     @{ Name = "Firefox"; WingetID = "Mozilla.Firefox" },                      # Firefox - open-source web browser
     @{ Name = "Git"; WingetID = "Git.Git" },                                  # Git - Version control system
-    @{ Name = "NordVPN"; WingetID = "NordVPN.NordVPN" },                      # NordVPN - VPN service for privacy
     @{ Name = "HWMonitor"; WingetID = "CPUID.HWMonitor" },                    # HWMonitor - Hardware monitoring tool
     @{ Name = "CPU-Z"; WingetID = "CPUID.CPU-Z" },                            # CPU-Z - CPU information tool
     @{ Name = "GPU-Z"; WingetID = "TechPowerUp.GPU-Z" },                      # GPU-Z - GPU information tool
-    @{ Name = "WhatsApp"; WingetID = "WhatsApp.WhatsApp" },                   # WhatsApp - Messaging and calling application
     @{ Name = "Discord"; WingetID = "Discord.Discord" },                      # Discord - Chat for communities and gamers
     @{ Name = "Microsoft Visual C++ Redistributable (x86)"; WingetID = "Microsoft.VCRedist.2015+.x86" },    # Microsoft Visual C++ 2015-2022 Redistributable (x86)
     @{ Name = "Microsoft Visual C++ Redistributable (x64)"; WingetID = "Microsoft.VCRedist.2015+.x64" }     # Microsoft Visual C++ 2015-2022 Redistributable (x64)
