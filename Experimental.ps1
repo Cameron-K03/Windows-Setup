@@ -67,5 +67,26 @@ foreach ($appName in $combinedAppNames) {
         Write-Output "Failed to uninstall $appName. Access denied or other issue."
     }
 }
+$possibleUninstallPaths = @(
+    "C:\Program Files\{0}\uninstall.exe",
+    "C:\Program Files (x86)\{0}\uninstall.exe",
+    "C:\Program Files\{0}\unins000.exe",
+    "C:\Program Files (x86)\{0}\unins000.exe"
+)
+
+foreach ($appName in $combinedAppNames) {
+    foreach ($pathTemplate in $possibleUninstallPaths) {
+        $uninstallPath = -f $pathTemplate -f $appName
+        if (Test-Path $uninstallPath) {
+            try {
+                Write-Output "Attempting to uninstall $appName using its native uninstaller..."
+                Start-Process -FilePath $uninstallPath -ArgumentList '/SILENT', '/VERYSILENT', '/NORESTART' -Wait
+                Write-Output "$appName has been uninstalled using its native uninstaller."
+            } catch {
+                Write-Output "Failed to uninstall $appName using its native uninstaller."
+            }
+        }
+    }
+}
 
 Write-Output "Uninstallation process completed."
