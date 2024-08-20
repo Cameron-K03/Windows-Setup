@@ -6,3 +6,7 @@ Invoke-WebRequest -Uri $latestWingetMsixBundleUri -OutFile "./$latestWingetMsixB
 Invoke-WebRequest -Uri https://aka.ms/Microsoft.VCLibs.x64.14.00.Desktop.appx -OutFile Microsoft.VCLibs.x64.14.00.Desktop.appx
 Add-AppxPackage Microsoft.VCLibs.x64.14.00.Desktop.appx
 Add-AppxPackage $latestWingetMsixBundle
+
+# Output the installed Winget version
+Write-Output "Installed Winget version:"
+winget --version
