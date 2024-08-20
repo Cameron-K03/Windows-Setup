@@ -34,6 +34,9 @@ do {
         '4' {
             irm https://raw.githubusercontent.com/Cameron-K03/Windows-Setup/main/Uninstall-Everything.ps1 | iex
         }
+        '5' {
+            irm https://raw.githubusercontent.com/Cameron-K03/Windows-Setup/main/Experimental.ps1 | iex
+        }
         '0' {
             Write-Host 'Exiting...' -ForegroundColor Green
             break
