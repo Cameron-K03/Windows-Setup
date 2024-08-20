@@ -1,92 +1,72 @@
-function Get-InstalledAppsWin32 {
+function Try-UninstallApp {
+    param (
+        [string]$appName
+    )
+
+    $uninstalled = $false
+
+    # Try using Get-Package
     try {
-        # Check if the Win32_Product class is valid
-        $classCheck = Get-WmiObject -List | Where-Object { $_.Name -eq 'Win32_Product' }
-        if ($classCheck) {
-            $apps = Get-WmiObject -Query "SELECT * FROM Win32_Product"
-            return $apps
-        } else {
-            Write-Output "Win32_Product class is invalid or not available."
-            return $null
+        Write-Output "Attempting to uninstall $appName using Get-Package..."
+        $packageApp = Get-Package -Name $appName -ErrorAction Stop
+        if ($packageApp) {
+            Uninstall-Package -Name $appName -Force -ErrorAction Stop | Out-Null
+            Write-Output "$appName has been uninstalled using Get-Package."
+            $uninstalled = $true
         }
     } catch {
-        Write-Output "Failed to retrieve apps using Win32_Product."
-        return $null
+        Write-Output "Failed to uninstall $appName using Get-Package."
     }
-}
 
-function Get-InstalledAppsPackage {
-    try {
-        $apps = Get-Package
-        return $apps
-    } catch {
-        Write-Output "Failed to retrieve apps using Get-Package."
-        return $null
-    }
-}
-
-# Retrieve installed applications using Win32_Product and Get-Package
-$win32Apps = Get-InstalledAppsWin32
-$packageApps = Get-InstalledAppsPackage
-
-# If both methods succeeded, cross-reference and merge the lists
-if ($win32Apps -and $packageApps) {
-    $win32AppNames = $win32Apps.Name
-    $packageAppNames = $packageApps.Name
-
-    # Merge lists and remove duplicates
-    $combinedAppNames = $win32AppNames + $packageAppNames | Sort-Object -Unique
-} elseif ($win32Apps) {
-    $combinedAppNames = $win32Apps.Name
-} elseif ($packageApps) {
-    $combinedAppNames = $packageApps.Name
-} else {
-    Write-Output "No applications found using either method."
-    exit
-}
-
-foreach ($appName in $combinedAppNames) {
-    try {
-        # Attempt to uninstall using Win32_Product
-        $app = $win32Apps | Where-Object { $_.Name -eq $appName }
-        if ($app) {
-            Write-Output "Attempting to uninstall $($app.Name) using Win32_Product..."
-            $app.Uninstall() | Out-Null
-            Write-Output "$($app.Name) has been uninstalled using Win32_Product."
-        } else {
-            # Attempt to uninstall using Get-Package if not found in Win32_Product
-            $appPackage = $packageApps | Where-Object { $_.Name -eq $appName }
-            if ($appPackage) {
-                Write-Output "Attempting to uninstall $($appPackage.Name) using Get-Package..."
-                Uninstall-Package -Name $appPackage.Name -Force -ErrorAction Stop | Out-Null
-                Write-Output "$($appPackage.Name) has been uninstalled using Get-Package."
+    # Try using WMIC if Get-Package fails
+    if (-not $uninstalled) {
+        try {
+            Write-Output "Attempting to uninstall $appName using WMIC..."
+            $wmicUninstall = wmic product where "name='$appName'" call uninstall /nointeractive
+            if ($wmicUninstall.ReturnValue -eq 0) {
+                Write-Output "$appName has been uninstalled using WMIC."
+                $uninstalled = $true
+            } else {
+                Write-Output "Failed to uninstall $appName using WMIC."
             }
+        } catch {
+            Write-Output "Error occurred while uninstalling $appName with WMIC."
         }
-    } catch {
-        # Handle access denied errors or other issues
-        Write-Output "Failed to uninstall $appName. Access denied or other issue."
     }
-}
-$possibleUninstallPaths = @(
-    "C:\Program Files\{0}\uninstall.exe",
-    "C:\Program Files (x86)\{0}\uninstall.exe",
-    "C:\Program Files\{0}\unins000.exe",
-    "C:\Program Files (x86)\{0}\unins000.exe"
-)
 
-foreach ($appName in $combinedAppNames) {
-    foreach ($pathTemplate in $possibleUninstallPaths) {
-        $uninstallPath = -f $pathTemplate -f $appName
-        if (Test-Path $uninstallPath) {
-            try {
-                Write-Output "Attempting to uninstall $appName using its native uninstaller..."
-                Start-Process -FilePath $uninstallPath -ArgumentList '/SILENT', '/VERYSILENT', '/NORESTART' -Wait
-                Write-Output "$appName has been uninstalled using its native uninstaller."
-            } catch {
-                Write-Output "Failed to uninstall $appName using its native uninstaller."
+    # Try using the native uninstaller if WMIC fails
+    if (-not $uninstalled) {
+        $possibleUninstallPaths = @(
+            "C:\Program Files\{0}\uninstall.exe",
+            "C:\Program Files (x86)\{0}\uninstall.exe",
+            "C:\Program Files\{0}\unins000.exe",
+            "C:\Program Files (x86)\{0}\unins000.exe"
+        )
+
+        foreach ($pathTemplate in $possibleUninstallPaths) {
+            $uninstallPath = -f $pathTemplate -f $appName
+            if (Test-Path $uninstallPath) {
+                try {
+                    Write-Output "Attempting to uninstall $appName using its native uninstaller..."
+                    Start-Process -FilePath $uninstallPath -ArgumentList '/SILENT', '/VERYSILENT', '/NORESTART' -Wait
+                    Write-Output "$appName has been uninstalled using its native uninstaller."
+                    $uninstalled = $true
+                    break
+                } catch {
+                    Write-Output "Failed to uninstall $appName using its native uninstaller."
+                }
             }
         }
     }
+
+    if (-not $uninstalled) {
+        Write-Output "$appName could not be uninstalled using any method."
+    }
+}
+
+# Loop through each app and attempt to uninstall using all methods
+foreach ($appName in $combinedAppNames) {
+    Try-UninstallApp -appName $appName
 }
 
 Write-Output "Uninstallation process completed."
