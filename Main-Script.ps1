@@ -8,6 +8,7 @@ function Show-Menu {
     Write-Host '2) Run Gamer-Programs.ps1'
     Write-Host '3) Run List-All-Programs.ps1'
     Write-Host '4) Run Uninstall-Everything.ps1'
+    Write-Host '5) Experimental.ps1'
     Write-Host '0) Exit'
     Write-Host ''
     
