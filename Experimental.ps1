@@ -1,7 +1,14 @@
 function Get-InstalledAppsWin32 {
     try {
-        $apps = Get-WmiObject -Query "SELECT * FROM Win32_Product"
-        return $apps
+        # Check if the Win32_Product class is valid
+        $classCheck = Get-WmiObject -List | Where-Object { $_.Name -eq 'Win32_Product' }
+        if ($classCheck) {
+            $apps = Get-WmiObject -Query "SELECT * FROM Win32_Product"
+            return $apps
+        } else {
+            Write-Output "Win32_Product class is invalid or not available."
+            return $null
+        }
     } catch {
         Write-Output "Failed to retrieve apps using Win32_Product."
         return $null
