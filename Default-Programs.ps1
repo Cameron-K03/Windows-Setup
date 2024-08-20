@@ -3,33 +3,32 @@
 
 # List of software to install with winget IDs
 $softwareList = @(
-    "Rufus.Rufus",                            # Rufus - Create bootable USB drives
-    "Balena.Etcher",                          # Etcher - Flash OS images to SD cards
-    "ventoy.Ventoy",                          # Ventoy - Boot multiple ISO files from USB
-    "JAMSoftware.TreeSize.Free",              # TreeSize Free - Disk space analyzer
-    "UderzoSoftware.SpaceSniffer",            # SpaceSniffer - Visualize disk space usage
-    "RevoUninstaller.RevoUninstaller",        # Revo Uninstaller - Remove unwanted programs
-    "mcmilk.7zip-zstd",                       # 7-zip - File archiver with high compression
-    "DuongDieuPhap.ImageGlass",               # ImageGlass - Image viewer for Windows
-    "GlassWire.GlassWire.Lite",               # GlassWire - Network security monitoring
-    "MSI.Kombustor.4",                        # MSI Kombustor - GPU stress test tool
-    "VideoLAN.VLC",                           # VLC Media Player - open-source multimedia player
-    "dotPDNLLC.paintdotnet",                  # Paint.net - image editor
-    "Microsoft.Office",                       # Microsoft 365 Apps - All the microsoft office apps
-    "Mozilla.Firefox",                        # Firefox - open-source web browser
-    "Git.Git",                                # Git - Version control system
-    "NordVPN.NordVPN",                        # NordVPN - VPN service for privacy
-    "CPUID.HWMonitor",                        # HWMonitor - Hardware monitoring tool
-    "CPUID.CPU-Z",                            # CPU-Z - CPU information tool
-    "TechPowerUp.GPU-Z",                      # GPU-Z - GPU information tool
-    "WhatsApp.WhatsApp",                      # WhatsApp - Messaging and calling application
-	"Discord.Discord"						  # Discord - "Chat for communities and gamers
-    "Microsoft.VCRedist.2015+.x86"   		  # Microsoft Visual C++ 2015-2022 Redistributable (x86)
-	"Microsoft.VCRedist.2015+.x64"   	      # Microsoft Visual C++ 2015-2022 Redistributable (x64)
-
+    @{ Name = "Rufus"; WingetID = "Rufus.Rufus" },                            # Rufus - Create bootable USB drives
+    @{ Name = "Etcher"; WingetID = "Balena.Etcher" },                         # Etcher - Flash OS images to SD cards
+    @{ Name = "Ventoy"; WingetID = "ventoy.Ventoy" },                         # Ventoy - Boot multiple ISO files from USB
+    @{ Name = "TreeSize Free"; WingetID = "JAMSoftware.TreeSize.Free" },      # TreeSize Free - Disk space analyzer
+    @{ Name = "SpaceSniffer"; WingetID = "UderzoSoftware.SpaceSniffer" },     # SpaceSniffer - Visualize disk space usage
+    @{ Name = "Revo Uninstaller"; WingetID = "RevoUninstaller.RevoUninstaller" }, # Revo Uninstaller - Remove unwanted programs
+    @{ Name = "7-zip"; WingetID = "mcmilk.7zip-zstd" },                       # 7-zip - File archiver with high compression
+    @{ Name = "ImageGlass"; WingetID = "DuongDieuPhap.ImageGlass" },          # ImageGlass - Image viewer for Windows
+    @{ Name = "GlassWire Lite"; WingetID = "GlassWire.GlassWire.Lite" },      # GlassWire - Network security monitoring
+    @{ Name = "MSI Kombustor"; WingetID = "MSI.Kombustor.4" },                # MSI Kombustor - GPU stress test tool
+    @{ Name = "VLC Media Player"; WingetID = "VideoLAN.VLC" },                # VLC Media Player - open-source multimedia player
+    @{ Name = "Paint.net"; WingetID = "dotPDNLLC.paintdotnet" },              # Paint.net - image editor
+    @{ Name = "Microsoft 365 Apps"; WingetID = "Microsoft.Office" },          # Microsoft 365 Apps - All the Microsoft office apps
+    @{ Name = "Firefox"; WingetID = "Mozilla.Firefox" },                      # Firefox - open-source web browser
+    @{ Name = "Git"; WingetID = "Git.Git" },                                  # Git - Version control system
+    @{ Name = "NordVPN"; WingetID = "NordVPN.NordVPN" },                      # NordVPN - VPN service for privacy
+    @{ Name = "HWMonitor"; WingetID = "CPUID.HWMonitor" },                    # HWMonitor - Hardware monitoring tool
+    @{ Name = "CPU-Z"; WingetID = "CPUID.CPU-Z" },                            # CPU-Z - CPU information tool
+    @{ Name = "GPU-Z"; WingetID = "TechPowerUp.GPU-Z" },                      # GPU-Z - GPU information tool
+    @{ Name = "WhatsApp"; WingetID = "WhatsApp.WhatsApp" },                   # WhatsApp - Messaging and calling application
+    @{ Name = "Discord"; WingetID = "Discord.Discord" },                      # Discord - Chat for communities and gamers
+    @{ Name = "Microsoft Visual C++ Redistributable (x86)"; WingetID = "Microsoft.VCRedist.2015+.x86" },    # Microsoft Visual C++ 2015-2022 Redistributable (x86)
+    @{ Name = "Microsoft Visual C++ Redistributable (x64)"; WingetID = "Microsoft.VCRedist.2015+.x64" }     # Microsoft Visual C++ 2015-2022 Redistributable (x64)
 )
 
-# Get winget
+# Function to check and install Winget if not installed
 function Wingetget {
     $ProgressPreference = 'SilentlyContinue'  # Suppress the progress bar for faster downloads
     $installerDir = "$env:TEMP\WingetInstallers"
@@ -73,7 +72,7 @@ function Wingetget {
     Remove-Item -Path $installerDir -Recurse -Force
 }
 
-# Install software
+# Function to install software using Winget
 function Install-Software {
     foreach ($software in $softwareList) {
         Write-Output "Installing $($software.Name)..."
@@ -81,8 +80,19 @@ function Install-Software {
     }
 }
 
-# Run all functions
-Wingetget
+# Check if Winget is installed
+$wingetInstalled = Get-Command winget -ErrorAction SilentlyContinue
+
+if ($null -eq $wingetInstalled) {
+    Write-Output "Winget is not installed. Installing Winget and its dependencies..."
+    Wingetget
+}
+
+# Output the installed Winget version or confirmation of installation
+Write-Output "Winget version:"
+winget --version
+
+# Proceed to install software
 Install-Software
 
 Write-Output "Installation process completed."
