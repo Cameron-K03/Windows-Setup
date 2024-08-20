@@ -50,14 +50,13 @@ function Try-UninstallApp {
     # Try using the native uninstaller if WMIC fails
     if (-not $uninstalled) {
         $possibleUninstallPaths = @(
-            "C:\Program Files\{0}\uninstall.exe",
-            "C:\Program Files (x86)\{0}\uninstall.exe",
-            "C:\Program Files\{0}\unins000.exe",
-            "C:\Program Files (x86)\{0}\unins000.exe"
+            "C:\Program Files\$appName\uninstall.exe",
+            "C:\Program Files (x86)\$appName\uninstall.exe",
+            "C:\Program Files\$appName\unins000.exe",
+            "C:\Program Files (x86)\$appName\unins000.exe"
         )
 
-        foreach ($pathTemplate in $possibleUninstallPaths) {
-            $uninstallPath = -f $pathTemplate -f $appName
+        foreach ($uninstallPath in $possibleUninstallPaths) {
             if (Test-Path $uninstallPath) {
                 try {
                     Write-Output "Attempting to uninstall $appName using its native uninstaller..."
