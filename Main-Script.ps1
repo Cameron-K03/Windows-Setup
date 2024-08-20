@@ -1,4 +1,3 @@
-# Main-Script.ps1
 function Show-Menu {
     param (
         [string]$Prompt = 'Choose an option:'
