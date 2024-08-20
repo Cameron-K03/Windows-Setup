@@ -3,29 +3,28 @@
 
 # List of software to install with winget IDs and descriptions
 $softwareList = @(
-    "Valve.Steam",                              # Steam - Gaming platform and store
-    "EpicGames.EpicGamesLauncher",              # Epic Games Launcher - Epic's gaming platform
-    "ElectronicArts.Origin",                    # Origin - EA's gaming platform
-    "Blizzard.BattleNet",                       # Battle.net - Blizzard's gaming platform
-    "GOG.Galaxy",                               # GOG Galaxy - GOG's gaming platform
-    "Razer.Synapse",                            # Razer Synapse - Razer peripherals configuration
-    "Nvidia.GeForceExperience",                 # GeForce Experience - NVIDIA's game optimization and recording
-    "AdvancedMicroDevicesInc.RadeonSoftware",   # AMD Radeon Software - AMD's GPU management software
-    "MSIAfterburner.MSIAfterburner",            # MSI Afterburner - GPU overclocking tool
-    "OBSProject.OBSStudio",                     # OBS Studio - Open-source streaming software
-    "Discord.Discord",                          # Discord - Chat for communities and gamers
-    "TeamSpeakSystems.TeamSpeak",               # TeamSpeak - Voice communication software
-    "NexusMods.Vortex",                         # Vortex - Mod manager for games
-    "Twitch.Twitch",                            # Twitch - Live streaming platform
-    "Beepa.Fraps",                              # Fraps - Screen capture and benchmarking
-    "Guru3D.RivatunerStatisticsServer",         # Rivatuner Statistics Server - Hardware monitoring tool
-    "Microsoft.XboxGameBar",                    # Game Bar - Windows' built-in game bar
-    "JTK.JoyToKey",                             # JoyToKey - Map joystick inputs to keyboard
-    "Ryochan7.DS4Windows"                       # DS4Windows - Use DualShock 4 on Windows
+    @{ Name = "Steam"; WingetID = "Valve.Steam" },                              # Steam - Gaming platform and store
+    @{ Name = "Epic Games Launcher"; WingetID = "EpicGames.EpicGamesLauncher" }, # Epic Games Launcher - Epic's gaming platform
+    @{ Name = "Origin"; WingetID = "ElectronicArts.Origin" },                    # Origin - EA's gaming platform
+    @{ Name = "Battle.net"; WingetID = "Blizzard.BattleNet" },                   # Battle.net - Blizzard's gaming platform
+    @{ Name = "GOG Galaxy"; WingetID = "GOG.Galaxy" },                           # GOG Galaxy - GOG's gaming platform
+    @{ Name = "Razer Synapse"; WingetID = "Razer.Synapse" },                     # Razer Synapse - Razer peripherals configuration
+    @{ Name = "GeForce Experience"; WingetID = "Nvidia.GeForceExperience" },     # GeForce Experience - NVIDIA's game optimization and recording
+    @{ Name = "AMD Radeon Software"; WingetID = "AdvancedMicroDevicesInc.RadeonSoftware" }, # AMD Radeon Software - AMD's GPU management software
+    @{ Name = "MSI Afterburner"; WingetID = "MSIAfterburner.MSIAfterburner" },   # MSI Afterburner - GPU overclocking tool
+    @{ Name = "OBS Studio"; WingetID = "OBSProject.OBSStudio" },                 # OBS Studio - Open-source streaming software
+    @{ Name = "Discord"; WingetID = "Discord.Discord" },                         # Discord - Chat for communities and gamers
+    @{ Name = "TeamSpeak"; WingetID = "TeamSpeakSystems.TeamSpeak" },            # TeamSpeak - Voice communication software
+    @{ Name = "Vortex"; WingetID = "NexusMods.Vortex" },                         # Vortex - Mod manager for games
+    @{ Name = "Twitch"; WingetID = "Twitch.Twitch" },                            # Twitch - Live streaming platform
+    @{ Name = "Fraps"; WingetID = "Beepa.Fraps" },                               # Fraps - Screen capture and benchmarking
+    @{ Name = "Rivatuner Statistics Server"; WingetID = "Guru3D.RivatunerStatisticsServer" }, # Rivatuner Statistics Server - Hardware monitoring tool
+    @{ Name = "Xbox Game Bar"; WingetID = "Microsoft.XboxGameBar" },             # Game Bar - Windows' built-in game bar
+    @{ Name = "JoyToKey"; WingetID = "JTK.JoyToKey" },                           # JoyToKey - Map joystick inputs to keyboard
+    @{ Name = "DS4Windows"; WingetID = "Ryochan7.DS4Windows" }                   # DS4Windows - Use DualShock 4 on Windows
 )
 
-
-# Get winget
+# Function to check and install Winget if not installed
 function Wingetget {
     $ProgressPreference = 'SilentlyContinue'  # Suppress the progress bar for faster downloads
     $installerDir = "$env:TEMP\WingetInstallers"
@@ -69,7 +68,7 @@ function Wingetget {
     Remove-Item -Path $installerDir -Recurse -Force
 }
 
-# Install software
+# Function to install software using Winget
 function Install-Software {
     foreach ($software in $softwareList) {
         Write-Output "Installing $($software.Name)..."
@@ -77,8 +76,19 @@ function Install-Software {
     }
 }
 
-# Finish WinGet stuff
-Wingetget
+# Check if Winget is installed
+$wingetInstalled = Get-Command winget -ErrorAction SilentlyContinue
+
+if ($null -eq $wingetInstalled) {
+    Write-Output "Winget is not installed. Installing Winget and its dependencies..."
+    Wingetget
+}
+
+# Output the installed Winget version or confirmation of installation
+Write-Output "Winget version:"
+winget --version
+
+# Proceed to install software
 Install-Software
 
 # Download and install AMD Adrenalin the hard way because they hate me (and dynamic links)
@@ -94,6 +104,5 @@ if ($amdDownloadLink) {
 
 # Download and install Battle.net (manual download)
 DownloadAndInstall -DownloadUrl "https://downloader.battle.net/download/getInstallerForGame?os=win&gameProgram=BATTLENET_APP&version=Live" -DownloadPath "$env:TEMP\BattleNetInstaller.exe" -InstallerArgs "/S"
-
 
 Write-Output "Enjoy your games."
