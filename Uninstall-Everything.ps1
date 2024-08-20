@@ -1,4 +1,4 @@
-﻿# Function to retrieve installed programs from the registry
+# Function to retrieve installed programs from the registry
 function Get-InstalledPrograms {
     param (
         [string]${registryKey}
