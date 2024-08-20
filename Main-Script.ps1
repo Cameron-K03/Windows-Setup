@@ -8,7 +8,7 @@ function Show-Menu {
     Write-Host '2) Run Gamer-Programs.ps1'
     Write-Host '3) Run List-All-Programs.ps1'
     Write-Host '4) Run Uninstall-Everything.ps1'
-    Write-Host '5) Run Experimental.ps1'
+    Write-Host '5) Run Default-Windows-Settings.ps1'
     Write-Host '0) Exit'
     Write-Host ''
     
@@ -35,7 +35,7 @@ do {
             irm https://raw.githubusercontent.com/Cameron-K03/Windows-Setup/main/Uninstall-Everything.ps1 | iex
         }
         '5' {
-            irm https://raw.githubusercontent.com/Cameron-K03/Windows-Setup/main/Experimental.ps1 | iex
+            irm https://raw.githubusercontent.com/Cameron-K03/Windows-Setup/main/Default-Windows-Settings.ps1 | iex
         }
         '0' {
             Write-Host 'Exiting...' -ForegroundColor Green
