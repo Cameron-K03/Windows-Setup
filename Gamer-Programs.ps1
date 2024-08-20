@@ -8,19 +8,10 @@ $softwareList = @(
     @{ Name = "Origin"; WingetID = "ElectronicArts.Origin" },                    # Origin - EA's gaming platform
     @{ Name = "Battle.net"; WingetID = "Blizzard.BattleNet" },                   # Battle.net - Blizzard's gaming platform
     @{ Name = "GOG Galaxy"; WingetID = "GOG.Galaxy" },                           # GOG Galaxy - GOG's gaming platform
-    @{ Name = "Razer Synapse"; WingetID = "Razer.Synapse" },                     # Razer Synapse - Razer peripherals configuration
     @{ Name = "GeForce Experience"; WingetID = "Nvidia.GeForceExperience" },     # GeForce Experience - NVIDIA's game optimization and recording
-    @{ Name = "AMD Radeon Software"; WingetID = "AdvancedMicroDevicesInc.RadeonSoftware" }, # AMD Radeon Software - AMD's GPU management software
-    @{ Name = "MSI Afterburner"; WingetID = "MSIAfterburner.MSIAfterburner" },   # MSI Afterburner - GPU overclocking tool
     @{ Name = "OBS Studio"; WingetID = "OBSProject.OBSStudio" },                 # OBS Studio - Open-source streaming software
     @{ Name = "Discord"; WingetID = "Discord.Discord" },                         # Discord - Chat for communities and gamers
-    @{ Name = "TeamSpeak"; WingetID = "TeamSpeakSystems.TeamSpeak" },            # TeamSpeak - Voice communication software
     @{ Name = "Vortex"; WingetID = "NexusMods.Vortex" },                         # Vortex - Mod manager for games
-    @{ Name = "Twitch"; WingetID = "Twitch.Twitch" },                            # Twitch - Live streaming platform
-    @{ Name = "Fraps"; WingetID = "Beepa.Fraps" },                               # Fraps - Screen capture and benchmarking
-    @{ Name = "Rivatuner Statistics Server"; WingetID = "Guru3D.RivatunerStatisticsServer" }, # Rivatuner Statistics Server - Hardware monitoring tool
-    @{ Name = "Xbox Game Bar"; WingetID = "Microsoft.XboxGameBar" },             # Game Bar - Windows' built-in game bar
-    @{ Name = "JoyToKey"; WingetID = "JTK.JoyToKey" },                           # JoyToKey - Map joystick inputs to keyboard
     @{ Name = "DS4Windows"; WingetID = "Ryochan7.DS4Windows" }                   # DS4Windows - Use DualShock 4 on Windows
 )
 
@@ -90,19 +81,4 @@ winget --version
 
 # Proceed to install software
 Install-Software
-
-# Download and install AMD Adrenalin the hard way because they hate me (and dynamic links)
-$htmlContent = (Invoke-WebRequest -Uri "https://www.amd.com/en/support/download/drivers.html" -Headers $headers).Content
-$amdDownloadLink = [regex]::Match(
-    $htmlContent,
-    'https:\/\/drivers\.amd\.com\/drivers\/installer\/[0-9\.]+\/whql\/amd-software-adrenalin-edition-[0-9\.]+-minimalsetup-[0-9]+_web\.exe'
-).Value
-
-if ($amdDownloadLink) {
-    DownloadAndInstall -DownloadUrl $amdDownloadLink -DownloadPath "$env:TEMP\AMD_Adrenalin.exe"
-}
-
-# Download and install Battle.net (manual download)
-DownloadAndInstall -DownloadUrl "https://downloader.battle.net/download/getInstallerForGame?os=win&gameProgram=BATTLENET_APP&version=Live" -DownloadPath "$env:TEMP\BattleNetInstaller.exe" -InstallerArgs "/S"
-
 Write-Output "Enjoy your games."
