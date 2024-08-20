@@ -1,71 +1,74 @@
-function Get-InstalledAppsWin32 {
-    try {
-        # Check if the Win32_Product class is valid
-        $classCheck = Get-WmiObject -List | Where-Object { $_.Name -eq 'Win32_Product' }
-        if ($classCheck) {
-            $apps = Get-WmiObject -Query "SELECT * FROM Win32_Product"
-            return $apps
-        } else {
-            Write-Output "Win32_Product class is invalid or not available."
-            return $null
-        }
-    } catch {
-        Write-Output "Failed to retrieve apps using Win32_Product."
-        return $null
+# Set Background to Picture
+Set-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name Wallpaper -Value "C:\Path\To\Your\Picture.jpg"
+RUNDLL32.EXE user32.dll,UpdatePerUserSystemParameters
+
+# Disable Fun Facts and Lock Screen Status
+Set-ItemProperty -Path "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\ContentDeliveryManager" -Name "SubscribedContent-338387Enabled" -Value 0
+Set-ItemProperty -Path "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\ContentDeliveryManager" -Name "SubscribedContent-353694Enabled" -Value 0
+
+# Taskbar: Disable Copilot, Task View, Widgets, and Hide Search
+Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "TaskbarMn" -Value 0
+Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "ShowTaskViewButton" -Value 0
+Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "ShowWidgetsButton" -Value 0
+Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Search" -Name "SearchboxTaskbarMode" -Value 0
+
+# Taskbar Behaviors (replicate from image)
+Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "TaskbarAl" -Value 0
+Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "TaskbarSi" -Value 1
+Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "MMTaskbar" -Value 0
+
+# Device Usage - Turn Off Everything
+Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\UserProfileEngagement" -Name "ScoobeSystemSettingEnabled" -Value 0
+
+# Share Across Devices - Turn Off
+Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\CDP" -Name "CdpSessionUserAuthzPolicy" -Value 0
+
+# Manage Startup Apps
+$startupApps = Get-CimInstance Win32_StartupCommand
+$startupApps | ForEach-Object {
+    if ($_ -notlike "*Hardware App Name*") {
+        Set-ItemProperty -Path $_.Command -Name "Disabled" -Value 1
     }
 }
 
-function Get-InstalledAppsPackage {
-    try {
-        $apps = Get-Package
-        return $apps
-    } catch {
-        Write-Output "Failed to retrieve apps using Get-Package."
-        return $null
-    }
+# Windows Backup - Turn Everything Off
+Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\WindowsBackup" -Name "DisableBackup" -Value 1
+
+# Typing Insights - Turn Off
+Set-ItemProperty -Path "HKCU:\Software\Microsoft\InputPersonalization" -Name "RestrictImplicitTextInput" -Value 1
+
+# Accessibility: Show Scrollbars, Turn Off Transparency, Animation
+Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\VisualEffects" -Name "Scrollbars" -Value 1
+Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\VisualEffects" -Name "Transparency" -Value 0
+Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\VisualEffects" -Name "Animation" -Value 0
+
+# Captions - Turn Off
+Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Accessibility" -Name "ClosedCaptioning" -Value 0
+
+# Privacy & Security Settings
+$privacySettings = @(
+    "HKCU:\Software\Microsoft\Windows\CurrentVersion\AdvertisingInfo\Enabled",
+    "HKCU:\Software\Microsoft\InputPersonalization\RestrictImplicitTextInput",
+    "HKCU:\Software\Microsoft\Windows\CurrentVersion\Location\EnableLocation",
+    "HKCU:\Software\Microsoft\Windows\CurrentVersion\Speech\EnableOnlineSpeech",
+    "HKCU:\Software\Microsoft\Windows\CurrentVersion\Diagnostics\AllowTelemetry",
+    "HKCU:\Software\Microsoft\Windows\CurrentVersion\Feedback\DoNotShowFeedback",
+    "HKCU:\Software\Microsoft\Windows\CurrentVersion\CloudContent\DisableSearchHighlights"
+)
+$privacySettings | ForEach-Object {
+    Set-ItemProperty -Path $_ -Name "Value" -Value 0
 }
 
-# Retrieve installed applications using Win32_Product and Get-Package
-$win32Apps = Get-InstalledAppsWin32
-$packageApps = Get-InstalledAppsPackage
+# Delivery Optimization - Turn Off
+Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\DeliveryOptimization\Config" -Name "DODownloadMode" -Value 0
 
-# If both methods succeeded, cross-reference and merge the lists
-if ($win32Apps -and $packageApps) {
-    $win32AppNames = $win32Apps.Name
-    $packageAppNames = $packageApps.Name
-
-    # Merge lists and remove duplicates
-    $combinedAppNames = $win32AppNames + $packageAppNames | Sort-Object -Unique
-} elseif ($win32Apps) {
-    $combinedAppNames = $win32Apps.Name
-} elseif ($packageApps) {
-    $combinedAppNames = $packageApps.Name
-} else {
-    Write-Output "No applications found using either method."
-    exit
+# Other App Permissions
+$appPermissions = @(
+    "Location", "Camera", "Microphone", "VoiceActivation", "Notifications", 
+    "AccountInfo", "Contacts", "Calendar", "PhoneCalls", "CallHistory", 
+    "Email", "Tasks", "Messaging", "Radios", "OtherDevices", 
+    "AppDiagnostics", "AutomaticFileDownloads", "MusicLibrary", "ScreenshotsAndApps"
+)
+foreach ($permission in $appPermissions) {
+    Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\AppPermissions\$permission" -Name "Value" -Value 0
 }
-
-foreach ($appName in $combinedAppNames) {
-    try {
-        # Attempt to uninstall using Win32_Product
-        $app = $win32Apps | Where-Object { $_.Name -eq $appName }
-        if ($app) {
-            Write-Output "Detected $($app.Name) using Win32_Product..."
-            $app.Uninstall() | Out-Null
-            Write-Output "An attempt to uninstall $($app.Name) was made using Win32_Product."
-        } else {
-            # Attempt to uninstall using Get-Package if not found in Win32_Product
-            $appPackage = $packageApps | Where-Object { $_.Name -eq $appName }
-            if ($appPackage) {
-                Write-Output "Detected $($appPackage.Name) using Get-Package..."
-                Uninstall-Package -Name $appPackage.Name -Force -ErrorAction Stop | Out-Null
-                Write-Output "An attempt to uninstall $($appPackage.Name) was made using Get-Package."
-            }
-        }
-    } catch {
-        # Handle access denied errors or other issues
-        Write-Output "Failed to uninstall $appName. Access denied or other issue."
-    }
-}
-
-Write-Output "Uninstallation process completed for some things. Maybe try Revo Uninstaller to get the rest..."
