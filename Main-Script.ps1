@@ -14,7 +14,7 @@ function Show-Menu {
     
     do {
         $choice = Read-Host $Prompt
-    } while ($choice -notin '0','1','2','3','4')
+    } while ($choice -notin '0','1','2','3','4','5')
 
     return $choice
 }
