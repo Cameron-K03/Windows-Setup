@@ -38,4 +38,3 @@ $ProgressPreference = 'SilentlyContinue'  # Suppress the progress bar for faster
 
     # Clean up
     Remove-Item -Path $installerDir -Recurse -Force
-}
