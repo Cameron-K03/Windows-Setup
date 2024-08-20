@@ -52,14 +52,14 @@ foreach ($appName in $combinedAppNames) {
         if ($app) {
             Write-Output "Attempting to uninstall $($app.Name) using Win32_Product..."
             $app.Uninstall() | Out-Null
-            Write-Output "$($app.Name) has been uninstalled using Win32_Product."
+            Write-Output "An attempt to uninstall $($app.Name) was made using Win32_Product."
         } else {
             # Attempt to uninstall using Get-Package if not found in Win32_Product
             $appPackage = $packageApps | Where-Object { $_.Name -eq $appName }
             if ($appPackage) {
                 Write-Output "Attempting to uninstall $($appPackage.Name) using Get-Package..."
                 Uninstall-Package -Name $appPackage.Name -Force -ErrorAction Stop | Out-Null
-                Write-Output "$($appPackage.Name) has been uninstalled using Get-Package."
+                Write-Output "An attempt to uninstall $($appPackage.Name) was made using Get-Package."
             }
         }
     } catch {
